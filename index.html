@@ -6,6 +6,8 @@
 <title>DIVINO — El mapa de las bodegas que aún no conoces</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -15,7 +17,7 @@
     --parchment-dark: #E8E0D3;
     --wine: #6B1F2A;
     --wine-light: #8B2F3F;
-    --gold: #1A1208;
+    --gold: #A89070;
     --gold-light: #3a3028;
     --slate: #8A8880;
     --slate-light: #B5B0A8;
@@ -27,16 +29,15 @@
   /* ─── TOPBAR ─── */
   #topbar {
     position: fixed; top: 0; left: 0; right: 0; height: 52px;
-    background: var(--parchment); z-index: 100;
+    background: var(--parchment); z-index: 1000;
     display: flex; align-items: center; justify-content: space-between;
     padding: 0 28px; border-bottom: 1px solid var(--parchment-dark);
   }
   .logo {
     font-family: 'Cormorant Garamond', serif;
     font-size: 22px; font-weight: 300; letter-spacing: 0.25em;
-    color: var(--ink); text-transform: uppercase;
+    color: var(--ink); text-transform: uppercase; cursor: pointer;
   }
-  .logo span { color: var(--ink); }
   .nav-links { display: flex; gap: 28px; align-items: center; }
   .nav-links a {
     font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase;
@@ -48,22 +49,19 @@
     padding: 7px 16px; font-size: 10px !important; letter-spacing: 0.14em !important;
     border-radius: 1px; transition: background 0.2s !important;
   }
-  .nav-cta:hover { background: var(--wine-light) !important; color: var(--parchment) !important; }
+  .nav-cta:hover { background: var(--wine-light) !important; }
 
   /* ─── LAYOUT ─── */
   #app { display: flex; height: 100vh; padding-top: 52px; }
 
   /* ─── SIDEBAR ─── */
   #sidebar {
-    width: 260px; flex-shrink: 0;
+    width: 280px; flex-shrink: 0;
     background: var(--parchment); overflow-y: auto;
     border-right: 1px solid var(--parchment-dark);
     display: flex; flex-direction: column;
   }
-  .sidebar-header {
-    padding: 22px 22px 14px;
-    border-bottom: 1px solid var(--parchment-dark);
-  }
+  .sidebar-header { padding: 22px 22px 14px; border-bottom: 1px solid var(--parchment-dark); }
   .sidebar-title {
     font-family: 'Cormorant Garamond', serif;
     font-size: 11px; font-weight: 400; letter-spacing: 0.2em;
@@ -74,1125 +72,287 @@
     background: var(--white); padding: 9px 12px;
     font-family: 'Inter', sans-serif; font-size: 12px;
     color: var(--ink); outline: none; border-radius: 1px;
-    transition: border-color 0.2s;
   }
-  .search-box:focus { border-color: var(--gold); }
-  .search-box::placeholder { color: var(--slate-light); }
 
   .filter-section { padding: 18px 22px; border-bottom: 1px solid var(--parchment-dark); }
-  .filter-label {
-    font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
-    color: var(--slate); margin-bottom: 10px; display: block;
-  }
+  .filter-label { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; display: block; }
   .filter-chips { display: flex; flex-wrap: wrap; gap: 5px; }
   .chip {
     font-size: 11px; padding: 5px 10px; border: 1px solid var(--parchment-dark);
     color: var(--slate); cursor: pointer; border-radius: 1px;
     transition: all 0.15s; background: transparent; font-family: 'Inter', sans-serif;
-    white-space: nowrap;
   }
   .chip:hover, .chip.active { background: var(--wine); border-color: var(--wine); color: var(--white); }
 
   .range-wrap { margin-top: 4px; }
   .range-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
   .range-val { font-size: 11px; color: var(--ink); font-weight: 500; }
-  input[type=range] {
-    width: 100%; accent-color: var(--wine); height: 2px; cursor: pointer;
-  }
-
-  .cert-list { display: flex; flex-direction: column; gap: 7px; }
-  .cert-item { display: flex; align-items: center; gap: 9px; cursor: pointer; }
-  .cert-item input[type=checkbox] { accent-color: var(--wine); cursor: pointer; }
-  .cert-item label { font-size: 12px; color: var(--ink); cursor: pointer; }
-
-  /* Discovery Index */
-  .discovery-section { padding: 18px 22px; }
-  .discovery-label { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; display: block; }
-  .discovery-bar { display: flex; flex-direction: column; gap: 7px; }
-  .d-item { display: flex; align-items: center; gap: 8px; cursor: pointer; }
-  .d-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .d-dot.new { background: var(--wine); }
-  .d-dot.growing { background: var(--gold); }
-  .d-dot.hidden { background: var(--slate); }
-  .d-label { font-size: 11px; color: var(--ink); }
-  .d-count { font-size: 10px; color: var(--slate); margin-left: auto; }
+  input[type=range] { width: 100%; accent-color: var(--wine); height: 2px; cursor: pointer; }
 
   /* ─── MAP AREA ─── */
-  #map-wrap { flex: 1; position: relative; background: #2a2318; overflow: hidden; }
+  #map-wrap { flex: 1; position: relative; background: #eeeae0; overflow: hidden; }
+  #map-canvas { width: 100%; height: 100%; position: relative; z-index: 1; }
 
-  #map-canvas {
-    width: 100%; height: 100%; background: #f5f0e8;
-    position: relative; overflow: hidden;
-  }
-
-  /* Fake map SVG background */
-  .map-bg {
-    position: absolute; inset: 0;
-    background:
-      radial-gradient(ellipse at 30% 40%, rgba(196,163,90,0.06) 0%, transparent 60%),
-      radial-gradient(ellipse at 70% 60%, rgba(107,31,42,0.05) 0%, transparent 50%);
-    background-color: #eeeae0;
-  }
-
-  .map-overlay-text {
-    position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
-    font-family: 'Cormorant Garamond', serif; font-size: 11px; letter-spacing: 0.3em;
-    text-transform: uppercase; color: rgba(26,18,8,0.12); pointer-events: none;
-    white-space: nowrap;
-  }
-
-  /* Winery pins */
-  .pin {
-    position: absolute; cursor: pointer;
-    transform: translate(-50%, -100%);
-    transition: transform 0.15s;
-    z-index: 10;
-  }
-  .pin:hover { transform: translate(-50%, -110%) scale(1.1); z-index: 20; }
+  /* Estilos personalizados para los marcadores de Leaflet (Pins de las bodegas) */
+  .custom-pin { display: flex; align-items: center; justify-content: center; }
   .pin-dot {
     width: 14px; height: 14px; border-radius: 50%;
     background: var(--wine); border: 2px solid var(--white);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.25);
-    transition: all 0.15s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3); transition: transform 0.15s;
   }
-  .pin.premium .pin-dot { background: var(--gold); }
-  .pin.new-producer .pin-dot { background: #4a7c59; }
-  .pin:hover .pin-dot, .pin.active .pin-dot {
-    transform: scale(1.3);
-    box-shadow: 0 3px 14px rgba(0,0,0,0.35);
-  }
-  .pin-label {
-    position: absolute; bottom: 100%; left: 50%; transform: translateX(-50%);
-    background: var(--ink); color: var(--parchment);
-    font-size: 10px; letter-spacing: 0.08em; padding: 3px 8px;
-    white-space: nowrap; opacity: 0; pointer-events: none;
-    transition: opacity 0.15s; margin-bottom: 6px;
-    font-family: 'Inter', sans-serif;
-  }
-  .pin:hover .pin-label { opacity: 1; }
-
-  /* Spain outline SVG */
-  #spain-map { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
-
-  /* ─── MAP CONTROLS ─── */
-  .map-controls {
-    position: absolute; bottom: 28px; right: 24px;
-    display: flex; flex-direction: column; gap: 4px; z-index: 20;
-  }
-  .map-btn {
-    width: 34px; height: 34px; background: var(--white);
-    border: 1px solid var(--parchment-dark); color: var(--ink);
-    font-size: 18px; cursor: pointer; display: flex; align-items: center; justify-content: center;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
-    transition: background 0.15s;
-    font-family: 'Inter', sans-serif;
-  }
-  .map-btn:hover { background: var(--parchment); }
-
-  /* Legend */
-  .map-legend {
-    position: absolute; bottom: 28px; left: 24px;
-    background: rgba(253,250,246,0.95); border: 1px solid var(--parchment-dark);
-    padding: 12px 16px; z-index: 20;
-  }
-  .legend-title { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
-  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
-  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
-  .legend-dot.w { background: var(--wine); }
-  .legend-dot.g { background: var(--gold); }
-  .legend-dot.n { background: #4a7c59; }
-  .legend-text { font-size: 10px; color: var(--ink); }
+  .custom-pin.premium .pin-dot { background: #1A1208; border-color: #A89070; }
+  .custom-pin.new-producer .pin-dot { background: #4a7c59; }
+  .custom-pin:hover .pin-dot { transform: scale(1.3); }
 
   /* Stats bar */
   .map-stats {
     position: absolute; top: 16px; left: 50%; transform: translateX(-50%);
     background: rgba(242,237,228,0.95); color: var(--ink);
-    padding: 9px 22px; display: flex; gap: 28px; z-index: 20;
-    backdrop-filter: blur(4px); border: 1px solid var(--parchment-dark);
+    padding: 9px 22px; display: flex; gap: 28px; z-index: 500;
+    backdrop-filter: blur(4px); border: 1px solid var(--parchment-dark); box-shadow: 0 4px 20px rgba(0,0,0,0.05);
   }
   .stat-item { text-align: center; }
-  .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; color: var(--ink); line-height: 1; }
+  .stat-num { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; line-height: 1; }
   .stat-lbl { font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--slate); margin-top: 2px; }
+
+  /* Legend */
+  .map-legend {
+    position: absolute; bottom: 28px; left: 24px;
+    background: rgba(253,250,246,0.95); border: 1px solid var(--parchment-dark);
+    padding: 12px 16px; z-index: 500; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+  }
+  .legend-title { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; }
+  .legend-item { display: flex; align-items: center; gap: 8px; margin-bottom: 5px; }
+  .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .legend-dot.w { background: var(--wine); }
+  .legend-dot.g { background: var(--ink); border: 1px solid #A89070; }
+  .legend-dot.n { background: #4a7c59; }
+  .legend-text { font-size: 10px; color: var(--ink); }
 
   /* ─── WINERY CARD PANEL ─── */
   #winery-panel {
     position: absolute; right: 0; top: 0; bottom: 0;
     width: 360px; background: var(--white);
     border-left: 1px solid var(--parchment-dark);
-    overflow-y: auto; z-index: 30;
-    transform: translateX(100%);
-    transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
+    overflow-y: auto; z-index: 1000;
+    transform: translateX(100%); transition: transform 0.35s cubic-bezier(0.4,0,0.2,1);
   }
   #winery-panel.open { transform: translateX(0); }
-
   .panel-close {
     position: absolute; top: 16px; right: 16px;
     width: 30px; height: 30px; background: var(--parchment);
-    border: none; cursor: pointer; font-size: 16px; color: var(--ink);
-    display: flex; align-items: center; justify-content: center;
-    z-index: 5;
+    border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; z-index: 5;
   }
-  .winery-hero {
-    height: 220px; background: var(--parchment-dark);
-    position: relative; overflow: hidden;
-  }
-  .winery-hero-img {
-    width: 100%; height: 100%; object-fit: cover;
-    background: linear-gradient(135deg, #c8baa0 0%, #a89070 100%);
-  }
-  .winery-hero-gradient {
-    position: absolute; inset: 0;
-    background: linear-gradient(to top, rgba(26,18,8,0.7) 0%, transparent 60%);
-  }
-  .winery-hero-badge {
-    position: absolute; top: 16px; left: 16px;
-    background: var(--wine); color: var(--white);
-    font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase;
-    padding: 4px 10px;
-  }
-  .winery-hero-name {
-    position: absolute; bottom: 16px; left: 20px; right: 50px;
-    font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300;
-    color: var(--white); line-height: 1.1;
-  }
-
-  .panel-body { padding: 22px 22px 32px; }
-
+  .winery-hero { height: 180px; position: relative; display: flex; align-items: flex-end; padding: 20px; }
+  .winery-hero-badge { position: absolute; top: 16px; left: 16px; background: var(--wine); color: var(--white); font-size: 9px; letter-spacing: 0.18em; text-transform: uppercase; padding: 4px 10px; }
+  .winery-hero-name { font-family: 'Cormorant Garamond', serif; font-size: 26px; font-weight: 300; color: var(--white); z-index: 2; line-height: 1.1; }
+  .panel-body { padding: 22px; }
   .panel-meta { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 16px; }
-  .meta-tag {
-    font-size: 10px; padding: 4px 9px; border: 1px solid var(--parchment-dark);
-    color: var(--slate); border-radius: 1px; letter-spacing: 0.06em;
-  }
-  .meta-tag.highlight { background: var(--gold); border-color: var(--gold); color: var(--white); }
-
+  .meta-tag { font-size: 10px; padding: 4px 9px; border: 1px solid var(--parchment-dark); color: var(--slate); }
+  .meta-tag.highlight { background: var(--ink); color: var(--white); }
   .panel-section { margin-bottom: 20px; }
-  .panel-section-title {
-    font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
-    color: var(--slate); margin-bottom: 8px; display: block;
-  }
+  .panel-section-title { font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase; color: var(--slate); margin-bottom: 8px; display: block; }
   .panel-text { font-size: 13px; line-height: 1.7; color: #3a3028; }
-
+  
   .stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .stat-box { background: var(--parchment); padding: 12px 14px; }
-  .stat-box-num { font-family: 'Cormorant Garamond', serif; font-size: 22px; color: var(--ink); line-height: 1; }
-  .stat-box-lbl { font-size: 10px; color: var(--slate); margin-top: 3px; }
+  .stat-box { background: var(--parchment); padding: 12px; }
+  .stat-box-num { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--ink); }
+  .stat-box-lbl { font-size: 10px; color: var(--slate); }
 
   .wines-list { display: flex; flex-direction: column; gap: 8px; }
-  .wine-item { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px; background: var(--parchment); }
-  .wine-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: 4px; flex-shrink: 0; }
+  .wine-item { display: flex; gap: 12px; align-items: center; padding: 10px; background: var(--parchment); }
+  .wine-dot { width: 8px; height: 8px; border-radius: 50%; }
   .wine-dot.tinto { background: var(--wine); }
-  .wine-dot.blanco { background: var(--gold-light); }
-  .wine-dot.rosado { background: #d4859a; }
-  .wine-name { font-size: 13px; font-weight: 500; color: var(--ink); }
-  .wine-grape { font-size: 11px; color: var(--slate); margin-top: 1px; }
-  .wine-price { font-size: 12px; color: var(--wine); font-weight: 500; margin-left: auto; flex-shrink: 0; }
-
-  .certs-row { display: flex; gap: 7px; flex-wrap: wrap; }
-  .cert-badge {
-    font-size: 10px; padding: 5px 10px; border: 1px solid;
-    border-radius: 1px;
-  }
-  .cert-badge.eco { border-color: #4a7c59; color: #4a7c59; background: rgba(74,124,89,0.06); }
-  .cert-badge.bio { border-color: #7c6a4a; color: #7c6a4a; background: rgba(124,106,74,0.06); }
-  .cert-badge.tur { border-color: var(--gold); color: var(--gold); background: rgba(196,163,90,0.06); }
+  .wine-dot.blanco { background: #A89070; }
+  .wine-name { font-size: 13px; font-weight: 500; }
+  .wine-grape { font-size: 11px; color: var(--slate); }
+  .wine-price { font-size: 12px; color: var(--wine); font-weight: 500; margin-left: auto; }
 
   .panel-actions { display: flex; flex-direction: column; gap: 8px; margin-top: 22px; }
-  .btn-primary {
-    width: 100%; padding: 13px; background: var(--wine); color: var(--white);
-    border: none; cursor: pointer; font-family: 'Inter', sans-serif;
-    font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
-    transition: background 0.2s;
-  }
-  .btn-primary:hover { background: var(--wine-light); }
-  .btn-secondary {
-    width: 100%; padding: 12px; background: transparent; color: var(--ink);
-    border: 1px solid var(--parchment-dark); cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.14em;
-    text-transform: uppercase; transition: all 0.2s;
-  }
-  .btn-secondary:hover { background: var(--parchment); border-color: var(--ink); }
+  .btn-primary { width: 100%; padding: 13px; background: var(--wine); color: var(--white); border: none; cursor: pointer; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .btn-secondary { width: 100%; padding: 12px; background: transparent; color: var(--ink); border: 1px solid var(--parchment-dark); cursor: pointer; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .btn-secondary:hover { background: var(--parchment); }
 
-  /* ─── BOTTOM TABS ─── */
-  #bottom-bar {
-    position: fixed; bottom: 0; left: 260px; right: 0;
-    height: 0; /* hidden by default, shown in full page mode */
+  /* ─── COMPARATOR SECTION ─── */
+  #comparator-section {
+    position: fixed; inset: 52px 0 0 0; background: var(--parchment);
+    z-index: 2000; overflow-y: auto; padding: 48px; display: none;
   }
+  #comparator-section.visible { display: block; }
+  .section-header { text-align: center; margin-bottom: 42px; }
+  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; }
+  .section-title em { font-style: italic; color: var(--wine); }
+  
+  .compare-table-wrap { overflow-x: auto; max-width: 1000px; margin: 0 auto; background: var(--white); border: 1px solid var(--parchment-dark); }
+  .compare-table { width: 100%; border-collapse: collapse; min-width: 600px; }
+  .compare-table th, .compare-table td { padding: 14px 18px; text-align: center; border-bottom: 1px solid var(--parchment-dark); font-size: 13px; }
+  .compare-table th:first-child, .compare-table td:first-child { text-align: left; font-size: 11px; color: var(--slate); text-transform: uppercase; font-weight: 500; background: var(--white); position: sticky; left: 0; }
+  .compare-table th.winery-col { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; color: var(--wine); }
+  .remove-compare-btn { background: none; border: none; color: var(--slate); cursor: pointer; font-size: 11px; text-decoration: underline; margin-top: 4px; display: block; width: 100%; text-align: center; }
+  .remove-compare-btn:hover { color: var(--wine); }
+  
+  .no-data-compare { text-align: center; padding: 40px; color: var(--slate); font-family: 'Cormorant Garamond', serif; font-size: 22px; }
 
-  /* ─── HERO SECTION (landing scroll) ─── */
+  /* ─── HERO / LANDING ─── */
   #hero-section {
-    position: fixed; inset: 52px 0 0 0;
-    background: var(--parchment); z-index: 50;
+    position: fixed; inset: 52px 0 0 0; background: var(--parchment); z-index: 3000;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
-    transition: opacity 0.6s, transform 0.6s;
+    transition: opacity 0.4s, transform 0.4s;
   }
   #hero-section.hidden { opacity: 0; transform: translateY(-20px); pointer-events: none; }
-
-  .hero-eyebrow {
-    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
-    color: var(--slate); margin-bottom: 18px;
-  }
-  .hero-title {
-    font-family: 'Cormorant Garamond', serif;
-    font-size: clamp(38px, 5vw, 68px); font-weight: 300; line-height: 1.05;
-    color: var(--ink); text-align: center; max-width: 760px;
-    margin-bottom: 14px;
-  }
+  .hero-title { font-family: 'Cormorant Garamond', serif; font-size: 56px; font-weight: 300; text-align: center; margin-bottom: 24px; line-height: 1.1; }
   .hero-title em { font-style: italic; color: var(--wine); }
-  .hero-sub {
-    font-size: 14px; color: var(--slate); text-align: center;
-    max-width: 460px; line-height: 1.6; margin-bottom: 42px;
-  }
-  .hero-cta-group { display: flex; gap: 12px; }
-  .hero-btn-main {
-    background: var(--wine); color: var(--white); border: none;
-    padding: 14px 34px; font-family: 'Inter', sans-serif;
-    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-    cursor: pointer; transition: background 0.2s;
-  }
-  .hero-btn-main:hover { background: var(--wine-light); }
-  .hero-btn-sec {
-    background: transparent; color: var(--ink); border: 1px solid var(--parchment-dark);
-    padding: 14px 34px; font-family: 'Inter', sans-serif;
-    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
-    cursor: pointer; transition: all 0.2s;
-  }
-  .hero-btn-sec:hover { border-color: var(--ink); }
+  .hero-btn-main { background: var(--wine); color: var(--white); border: none; padding: 14px 34px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; cursor: pointer; }
 
-  .hero-stats {
-    position: absolute; bottom: 48px;
-    display: flex; gap: 52px;
-  }
-  .hero-stat { text-align: center; }
-  .hero-stat-n {
-    font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300;
-    color: var(--ink); line-height: 1;
-  }
-  .hero-stat-l { font-size: 10px; letter-spacing: 0.18em; text-transform: uppercase; color: var(--slate); margin-top: 4px; }
-
-  .hero-scroll {
-    position: absolute; bottom: 22px;
-    font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--slate);
-    display: flex; flex-direction: column; align-items: center; gap: 8px;
-    animation: pulse 2s ease-in-out infinite;
-  }
-  .hero-scroll::after {
-    content: ''; display: block; width: 1px; height: 28px;
-    background: var(--slate);
-  }
-  @keyframes pulse { 0%,100%{opacity:0.4} 50%{opacity:0.9} }
-
-  /* ─── FEATURES SECTION ─── */
-  #features-section {
-    position: fixed; inset: 52px 0 0 0;
-    background: var(--parchment); z-index: 49;
-    overflow-y: auto;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.4s;
-    display: none;
-  }
-  #features-section.visible { opacity: 1; pointer-events: all; display: block; }
-
-  /* ─── COMPARATOR ─── */
-  #comparator-section {
-    position: fixed; inset: 52px 0 0 0;
-    background: var(--parchment); z-index: 48;
-    overflow-y: auto; padding: 48px;
-    opacity: 0; pointer-events: none;
-    transition: opacity 0.4s;
-    display: none;
-  }
-  #comparator-section.visible { opacity: 1; pointer-events: all; display: block; }
-
-  .section-header { text-align: center; margin-bottom: 42px; }
-  .section-eyebrow { font-size: 10px; letter-spacing: 0.26em; text-transform: uppercase; color: var(--slate); margin-bottom: 10px; }
-  .section-title { font-family: 'Cormorant Garamond', serif; font-size: 42px; font-weight: 300; color: var(--ink); }
-  .section-title em { font-style: italic; color: var(--wine); }
-
-  .compare-table { width: 100%; border-collapse: collapse; max-width: 700px; margin: 0 auto; }
-  .compare-table th { padding: 14px 18px; text-align: left; }
-  .compare-table th.winery-col { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; color: var(--ink); text-align: center; }
-  .compare-table td { padding: 13px 18px; border-top: 1px solid var(--parchment-dark); font-size: 13px; }
-  .compare-table td:first-child { font-size: 11px; letter-spacing: 0.08em; color: var(--slate); text-transform: uppercase; }
-  .compare-table td:not(:first-child) { text-align: center; }
-  .check { color: #4a7c59; font-size: 15px; }
-  .cross { color: var(--slate-light); font-size: 15px; }
-  .compare-table tr:nth-child(even) td { background: rgba(242,237,228,0.5); }
-
-  /* ─── ROUTES SECTION ─── */
-  .routes-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; max-width: 1000px; margin: 0 auto; }
-  .route-card { background: var(--white); border: 1px solid var(--parchment-dark); overflow: hidden; cursor: pointer; transition: box-shadow 0.2s; }
-  .route-card:hover { box-shadow: 0 8px 30px rgba(0,0,0,0.1); }
-  .route-card-top { height: 120px; background: linear-gradient(135deg, var(--wine) 0%, #3d1015 100%); display: flex; align-items: flex-end; padding: 14px; }
-  .route-card-top.golden { background: linear-gradient(135deg, #8B6914 0%, var(--gold) 100%); }
-  .route-card-top.green { background: linear-gradient(135deg, #2d4a35 0%, #4a7c59 100%); }
-  .route-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; color: var(--white); font-weight: 300; }
-  .route-body { padding: 14px 16px; }
-  .route-meta { font-size: 10px; color: var(--slate); letter-spacing: 0.1em; text-transform: uppercase; margin-bottom: 6px; }
-  .route-desc { font-size: 12px; color: var(--ink); line-height: 1.6; }
-  .route-stops { display: flex; gap: 5px; margin-top: 10px; flex-wrap: wrap; }
-  .route-stop { font-size: 10px; padding: 3px 7px; background: var(--parchment); color: var(--slate); }
-
-  /* Pricing */
-  .pricing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; max-width: 600px; margin: 0 auto; }
-  .pricing-card { border: 1px solid var(--parchment-dark); overflow: hidden; }
-  .pricing-header { padding: 24px 24px 18px; background: var(--parchment); }
-  .pricing-name { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 300; margin-bottom: 6px; }
-  .pricing-price { font-size: 32px; font-weight: 300; color: var(--wine); }
-  .pricing-price sup { font-size: 16px; vertical-align: top; margin-top: 6px; display: inline-block; }
-  .pricing-price .period { font-size: 13px; color: var(--slate); }
-  .pricing-body { padding: 18px 24px 24px; background: var(--white); }
-  .pricing-feature { display: flex; gap: 9px; margin-bottom: 8px; align-items: flex-start; font-size: 13px; }
-  .pricing-feature .chk { color: #4a7c59; margin-top: 1px; }
-  .pricing-card.featured { border-color: var(--wine); }
-  .pricing-card.featured .pricing-header { background: var(--wine); }
-  .pricing-card.featured .pricing-name { color: var(--white); }
-  .pricing-card.featured .pricing-price { color: var(--gold); }
-  .pricing-card.featured .pricing-price .period { color: rgba(255,255,255,0.6); }
-
-  /* Blog cards */
-  .blog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto; }
-  .blog-card { background: var(--white); overflow: hidden; border: 1px solid var(--parchment-dark); cursor: pointer; }
-  .blog-card-img { height: 140px; background: linear-gradient(135deg, #8a7a60, #5a4a30); display: flex; align-items: center; justify-content: center; }
-  .blog-card-img .icon { font-size: 42px; opacity: 0.5; }
-  .blog-card-body { padding: 16px; }
-  .blog-tag { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--wine); margin-bottom: 7px; }
-  .blog-headline { font-family: 'Cormorant Garamond', serif; font-size: 18px; font-weight: 400; color: var(--ink); line-height: 1.3; margin-bottom: 7px; }
-  .blog-date { font-size: 11px; color: var(--slate); }
-
-  .features-content { padding: 48px 48px 80px; }
-  .features-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 20px; max-width: 1000px; margin: 0 auto 60px; }
-  .feature-card { background: var(--white); border: 1px solid var(--parchment-dark); padding: 24px; }
-  .feature-icon { font-size: 28px; margin-bottom: 12px; }
-  .feature-name { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 400; margin-bottom: 8px; }
-  .feature-desc { font-size: 12px; color: var(--slate); line-height: 1.6; }
-
-  /* scrollable sections padding */
-  .padded-section { padding: 60px 48px; }
-  .padded-section + .padded-section { border-top: 1px solid var(--parchment-dark); }
-
-  /* ─── BACK BTN ─── */
   .back-btn {
-    position: fixed; top: 62px; left: 20px; z-index: 60;
-    background: var(--parchment); color: var(--ink);
-    border: 1px solid var(--parchment-dark); padding: 8px 14px; cursor: pointer;
-    font-family: 'Inter', sans-serif; font-size: 11px; letter-spacing: 0.1em;
-    display: none; align-items: center; gap: 7px;
+    position: fixed; top: 68px; left: 20px; z-index: 2500;
+    background: var(--white); border: 1px solid var(--parchment-dark); padding: 8px 14px;
+    font-size: 11px; cursor: pointer; display: none;
   }
   .back-btn.visible { display: flex; }
-  .back-btn:hover { background: var(--parchment-dark); }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar { width: 5px; }
-  ::-webkit-scrollbar-track { background: var(--parchment); }
-  ::-webkit-scrollbar-thumb { background: var(--parchment-dark); border-radius: 2px; }
 </style>
 </head>
 <body>
 
-<!-- TOP BAR -->
 <div id="topbar">
-  <div class="logo">D<span>IVINO</span></div>
+  <div class="logo" onclick="location.reload()">D<span>IVINO</span></div>
   <nav class="nav-links">
-    <a href="#" onclick="showFeatures()">Bodegas</a>
-    <a href="#" onclick="showComparator()">Comparar</a>
-    <a href="#" onclick="showFeatures('routes')">Rutas</a>
-    <a href="#" onclick="showFeatures('blog')">Revista</a>
-    <a href="#" onclick="showFeatures('professionals')">Profesionales</a>
-    <a href="#" class="nav-cta" onclick="showFeatures('pricing')">Para bodegas</a>
+    <a href="#" onclick="openMap()">Mapa Bodegas</a>
+    <a href="#" onclick="showComparator()">Comparar (<span id="compare-count">0</span>)</a>
   </nav>
 </div>
 
-<!-- BACK BUTTON -->
 <button class="back-btn" id="backBtn" onclick="goBack()">← Volver al mapa</button>
 
-<!-- HERO -->
 <div id="hero-section">
-  <div class="hero-eyebrow">Descubre el mundo oculto del vino</div>
   <h1 class="hero-title">El mapa de las bodegas<br><em>que aún no conoces</em></h1>
-  <p class="hero-sub">Miles de bodegas independientes, sus historias, sus vinos y cómo encontrarlas.</p>
-  <div class="hero-cta-group">
-    <button class="hero-btn-main" onclick="openMap()">Explorar el mapa</button>
-    <button class="hero-btn-sec" onclick="showFeatures('pricing')">¿Tienes una bodega?</button>
-  </div>
-  <div class="hero-stats">
-    <div class="hero-stat">
-      <div class="hero-stat-n">3.200+</div>
-      <div class="hero-stat-l">Bodegas</div>
-    </div>
-    <div class="hero-stat">
-      <div class="hero-stat-n">68</div>
-      <div class="hero-stat-l">D.O. en España</div>
-    </div>
-    <div class="hero-stat">
-      <div class="hero-stat-n">420</div>
-      <div class="hero-stat-l">Productores eco</div>
-    </div>
-    <div class="hero-stat">
-      <div class="hero-stat-n">190</div>
-      <div class="hero-stat-l">Con enoturismo</div>
-    </div>
-  </div>
+  <button class="hero-btn-main" onclick="openMap()">Explorar el mapa interactivo</button>
 </div>
 
-<!-- MAP APP -->
 <div id="app" style="display:none;">
-  <!-- SIDEBAR -->
   <aside id="sidebar">
     <div class="sidebar-header">
-      <span class="sidebar-title">Buscar</span>
-      <input class="search-box" type="text" placeholder="Bodega o D.O.…" oninput="filterPins(this.value)">
+      <span class="sidebar-title">Filtrar por Nombre</span>
+      <input class="search-box" type="text" id="sidebarSearch" placeholder="Buscar bodega..." oninput="searchWineries(this.value)">
     </div>
-
     <div class="filter-section">
-      <span class="filter-label">Tipo de vino</span>
+      <span class="filter-label">Tipo de vino preferente</span>
       <div class="filter-chips">
-        <button class="chip active" onclick="toggleChip(this)">Tinto</button>
-        <button class="chip active" onclick="toggleChip(this)">Blanco</button>
-        <button class="chip" onclick="toggleChip(this)">Rosado</button>
-        <button class="chip" onclick="toggleChip(this)">Espumoso</button>
-        <button class="chip" onclick="toggleChip(this)">Dulce</button>
+        <button class="chip active" onclick="filterType('Todos', this)">Todos</button>
+        <button class="chip" onclick="filterType('Tinto', this)">Tintos</button>
+        <button class="chip" onclick="filterType('Blanco', this)">Blancos</button>
       </div>
     </div>
-
     <div class="filter-section">
-      <span class="filter-label">Precio máx. botella</span>
-      <div class="range-wrap">
-        <div class="range-row">
-          <span style="font-size:11px;color:var(--slate)">€5</span>
-          <span class="range-val" id="priceVal">€120</span>
-          <span style="font-size:11px;color:var(--slate)">€500</span>
-        </div>
-        <input type="range" min="5" max="500" value="120" oninput="document.getElementById('priceVal').textContent='€'+this.value">
-      </div>
-    </div>
-
-    <div class="filter-section">
-      <span class="filter-label">Producción anual</span>
-      <div class="filter-chips">
-        <button class="chip" onclick="toggleChip(this)">&lt;10k bot.</button>
-        <button class="chip active" onclick="toggleChip(this)">10–50k</button>
-        <button class="chip" onclick="toggleChip(this)">50–200k</button>
-        <button class="chip" onclick="toggleChip(this)">&gt;200k</button>
-      </div>
-    </div>
-
-    <div class="filter-section">
-      <span class="filter-label">Certificaciones</span>
-      <div class="cert-list">
-        <label class="cert-item"><input type="checkbox" checked> <span>Agricultura ecológica</span></label>
-        <label class="cert-item"><input type="checkbox"> <span>Biodinámica</span></label>
-        <label class="cert-item"><input type="checkbox"> <span>Viñedos históricos</span></label>
-        <label class="cert-item"><input type="checkbox"> <span>Viñedo de montaña</span></label>
-        <label class="cert-item"><input type="checkbox"> <span>Con enoturismo</span></label>
-      </div>
-    </div>
-
-    <div class="discovery-section">
-      <span class="discovery-label">Índice de descubrimiento</span>
-      <div class="discovery-bar">
-        <div class="d-item" onclick="filterByDisc('new')">
-          <div class="d-dot new"></div>
-          <span class="d-label">Nuevos productores</span>
-          <span class="d-count">47</span>
-        </div>
-        <div class="d-item" onclick="filterByDisc('growing')">
-          <div class="d-dot growing"></div>
-          <span class="d-label">Crecimiento reciente</span>
-          <span class="d-count">132</span>
-        </div>
-        <div class="d-item" onclick="filterByDisc('hidden')">
-          <div class="d-dot hidden"></div>
-          <span class="d-label">Poco conocidas</span>
-          <span class="d-count">380</span>
-        </div>
+      <div class="no-data-compare" style="font-size: 14px; text-align: left; padding: 0; color: var(--ink);">
+        Haz click sobre cualquier marcador del mapa interactivo de España para desplegar su ficha detallada.
       </div>
     </div>
   </aside>
 
-  <!-- MAP -->
   <div id="map-wrap">
-    <div id="map-canvas">
-      <div class="map-bg"></div>
+    <div id="map-canvas"></div>
 
-      <!-- Spain SVG outline (simplified) -->
-      <svg id="spain-map" viewBox="0 0 1000 700" preserveAspectRatio="xMidYMid meet">
-        <defs>
-          <filter id="blur"><feGaussianBlur stdDeviation="1.5"/></filter>
-        </defs>
-        <!-- Approximate Spain + Portugal outline -->
-        <path d="M180,160 Q200,130 240,120 Q280,110 320,100 Q380,90 440,85 Q500,82 550,88 Q600,92 650,100 Q700,110 740,125 Q780,140 810,165 Q840,185 860,210 Q880,235 890,265 Q900,295 895,325 Q888,360 875,385 Q860,410 840,432 Q820,455 795,470 Q770,488 740,500 Q710,512 675,520 Q640,528 600,532 Q555,538 510,535 Q465,530 425,522 Q385,514 348,500 Q310,485 278,468 Q246,450 220,428 Q194,406 175,380 Q158,354 150,325 Q142,295 145,265 Q149,232 162,205 Z" fill="rgba(26,18,8,0.04)" stroke="rgba(26,18,8,0.12)" stroke-width="1.5" filter="url(#blur)"/>
-        <!-- Portugal approximate -->
-        <path d="M148,170 Q160,155 175,148 Q162,205 150,325 Q142,295 145,265 Q135,240 132,210 Z" fill="rgba(26,18,8,0.02)" stroke="rgba(26,18,8,0.08)" stroke-width="1"/>
-        <!-- Region divisions (subtle) -->
-        <line x1="420" y1="100" x2="430" y2="530" stroke="rgba(26,18,8,0.05)" stroke-width="0.8"/>
-        <line x1="600" y1="95" x2="590" y2="530" stroke="rgba(26,18,8,0.05)" stroke-width="0.8"/>
-        <line x1="150" y1="290" x2="890" y2="300" stroke="rgba(26,18,8,0.05)" stroke-width="0.8"/>
-        <!-- Region labels -->
-        <text x="270" y="200" font-family="'Inter'" font-size="11" fill="rgba(26,18,8,0.18)" letter-spacing="3">GALICIA</text>
-        <text x="340" y="170" font-family="'Inter'" font-size="10" fill="rgba(26,18,8,0.15)" letter-spacing="2">ASTURIAS</text>
-        <text x="540" y="155" font-family="'Inter'" font-size="11" fill="rgba(26,18,8,0.18)" letter-spacing="3">RIOJA</text>
-        <text x="460" y="290" font-family="'Inter'" font-size="12" fill="rgba(26,18,8,0.15)" letter-spacing="4">CASTILLA</text>
-        <text x="680" y="250" font-family="'Inter'" font-size="11" fill="rgba(26,18,8,0.15)" letter-spacing="3">ARAGÓN</text>
-        <text x="640" y="420" font-family="'Inter'" font-size="11" fill="rgba(26,18,8,0.18)" letter-spacing="3">VALENCIA</text>
-        <text x="340" y="450" font-family="'Inter'" font-size="12" fill="rgba(26,18,8,0.15)" letter-spacing="4">ANDALUCÍA</text>
-        <text x="480" y="420" font-family="'Inter'" font-size="10" fill="rgba(26,18,8,0.15)" letter-spacing="2">LA MANCHA</text>
-        <!-- Compass -->
-        <text x="850" y="120" font-family="'Cormorant Garamond'" font-size="14" fill="rgba(26,18,8,0.2)" font-style="italic">N ↑</text>
-      </svg>
-
-      <!-- Winery Pins -->
-      <div class="pin premium" style="left:56%;top:23%" onclick="openWinery(0)">
-        <div class="pin-label">Bodegas Eguren</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin" style="left:59%;top:26%" onclick="openWinery(1)">
-        <div class="pin-label">Viñedos del Contino</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin new-producer" style="left:53%;top:30%" onclick="openWinery(2)">
-        <div class="pin-label">Finca Allende</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin" style="left:44%;top:35%" onclick="openWinery(3)">
-        <div class="pin-label">Bodegas Pesquera</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin premium" style="left:38%;top:22%" onclick="openWinery(4)">
-        <div class="pin-label">Pazo Señoráns</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin" style="left:66%;top:42%" onclick="openWinery(5)">
-        <div class="pin-label">Bodegas Mustiguillo</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin new-producer" style="left:48%;top:62%" onclick="openWinery(6)">
-        <div class="pin-label">Bodegas Toro Albalá</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin" style="left:62%;top:55%" onclick="openWinery(7)">
-        <div class="pin-label">Casa Castillo</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin premium" style="left:73%;top:38%" onclick="openWinery(8)">
-        <div class="pin-label">Celler Can Ràfols</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin" style="left:30%;top:52%" onclick="openWinery(9)">
-        <div class="pin-label">Viñas Altas</div>
-        <div class="pin-dot"></div>
-      </div>
-      <div class="pin new-producer" style="left:71%;top:28%" onclick="openWinery(10)">
-        <div class="pin-label">Costers del Segre</div>
-        <div class="pin-dot"></div>
-      </div>
-
-      <!-- Stats bar -->
-      <div class="map-stats">
-        <div class="stat-item">
-          <div class="stat-num" id="visibleCount">3.247</div>
-          <div class="stat-lbl">Bodegas</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num">68</div>
-          <div class="stat-lbl">D.O.</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num">17</div>
-          <div class="stat-lbl">Regiones</div>
-        </div>
-        <div class="stat-item">
-          <div class="stat-num" style="color:#4a7c59">47</div>
-          <div class="stat-lbl">Nuevas este mes</div>
-        </div>
-      </div>
-
-      <!-- Legend -->
-      <div class="map-legend">
-        <div class="legend-title">Leyenda</div>
-        <div class="legend-item"><div class="legend-dot g"></div><span class="legend-text">Bodega premium</span></div>
-        <div class="legend-item"><div class="legend-dot w"></div><span class="legend-text">Bodega estándar</span></div>
-        <div class="legend-item"><div class="legend-dot n"></div><span class="legend-text">Nuevo productor</span></div>
-      </div>
-
-      <!-- Map Controls -->
-      <div class="map-controls">
-        <button class="map-btn">+</button>
-        <button class="map-btn">−</button>
-        <button class="map-btn" title="Mi ubicación">◎</button>
-      </div>
-
-      <!-- Search bar bottom -->
-      <div style="position:absolute;bottom:28px;left:50%;transform:translateX(-50%);z-index:20;display:flex;gap:8px;">
-        <input type="text" placeholder="BUSCAR BODEGA O D.O." style="width:360px;padding:13px 18px;background:rgba(253,250,246,0.96);border:1px solid var(--parchment-dark);font-family:'Cormorant Garamond',serif;font-size:13px;letter-spacing:0.12em;color:var(--ink);outline:none;">
-        <button style="padding:13px 20px;background:var(--wine);color:var(--white);border:none;cursor:pointer;font-size:12px;letter-spacing:0.1em;">↵</button>
-      </div>
+    <div class="map-stats">
+      <div class="stat-item"><div class="stat-num" id="visibleCount">11</div><div class="stat-lbl">Filtradas</div></div>
+      <div class="stat-item"><div class="stat-num">68</div><div class="stat-lbl">D.O. Totales</div></div>
+      <div class="stat-item"><div class="stat-num" style="color:#4a7c59">Eco</div><div class="stat-lbl">Certificados</div></div>
     </div>
 
-    <!-- WINERY PANEL -->
+    <div class="map-legend">
+      <div class="legend-title">Leyenda</div>
+      <div class="legend-item"><div class="legend-dot g"></div><span class="legend-text">Bodega Premium</span></div>
+      <div class="legend-item"><div class="legend-dot w"></div><span class="legend-text">Bodega Estándar</span></div>
+      <div class="legend-item"><div class="legend-dot n"></div><span class="legend-text">Nuevo Productor</span></div>
+    </div>
+
     <div id="winery-panel">
       <button class="panel-close" onclick="closePanel()">✕</button>
-      <div class="winery-hero">
-        <div class="winery-hero-img" id="wineryHeroImg" style="background:linear-gradient(135deg,#9a7a50 0%,#5a3a20 100%)"></div>
-        <div class="winery-hero-gradient"></div>
+      <div class="winery-hero" id="wineryHeroImg">
         <div class="winery-hero-badge" id="wineryBadge">D.O. Rioja</div>
-        <div class="winery-hero-name" id="wineryName">Bodegas Eguren</div>
+        <div class="winery-hero-name" id="wineryName">Nombre</div>
       </div>
       <div class="panel-body">
-        <div class="panel-meta" id="wineryMeta">
-          <span class="meta-tag highlight">Premium</span>
-          <span class="meta-tag">Fundada 1870</span>
-          <span class="meta-tag">Familiar</span>
-        </div>
+        <div class="panel-meta" id="wineryMeta"></div>
         <div class="panel-section">
-          <span class="panel-section-title">Historia</span>
-          <p class="panel-text" id="wineryDesc">Bodega familiar de quinta generación ubicada en el corazón de La Rioja Alta. Sus viñedos de más de 80 años producen algunos de los tintos más reconocidos de España.</p>
+          <span class="panel-section-title">Historia y Filosofía</span>
+          <p class="panel-text" id="wineryDesc"></p>
         </div>
-        <div class="stats-grid" id="wineryStats">
-          <div class="stat-box">
-            <div class="stat-box-num">180.000</div>
-            <div class="stat-box-lbl">Botellas/año</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-box-num">95 ha</div>
-            <div class="stat-box-lbl">Viñedo propio</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-box-num">1870</div>
-            <div class="stat-box-lbl">Fundación</div>
-          </div>
-          <div class="stat-box">
-            <div class="stat-box-num">12</div>
-            <div class="stat-box-lbl">Países exportación</div>
-          </div>
-        </div>
-        <div class="panel-section" style="margin-top:16px">
-          <span class="panel-section-title">Vinos destacados</span>
-          <div class="wines-list" id="wineryWines">
-            <div class="wine-item">
-              <div class="wine-dot tinto"></div>
-              <div>
-                <div class="wine-name">Protocolo Crianza</div>
-                <div class="wine-grape">Tempranillo · Garnacha</div>
-              </div>
-              <div class="wine-price">€12</div>
-            </div>
-            <div class="wine-item">
-              <div class="wine-dot tinto"></div>
-              <div>
-                <div class="wine-name">Urbina Gran Reserva</div>
-                <div class="wine-grape">Tempranillo</div>
-              </div>
-              <div class="wine-price">€38</div>
-            </div>
-            <div class="wine-item">
-              <div class="wine-dot blanco"></div>
-              <div>
-                <div class="wine-name">Señorío Blanco</div>
-                <div class="wine-grape">Viura · Malvasía</div>
-              </div>
-              <div class="wine-price">€9</div>
-            </div>
-          </div>
-        </div>
-        <div class="panel-section">
-          <span class="panel-section-title">Certificaciones</span>
-          <div class="certs-row" id="wineryCerts">
-            <span class="cert-badge eco">🌿 Ecológica</span>
-            <span class="cert-badge tur">🏛 Enoturismo</span>
-          </div>
-        </div>
+        <div class="stats-grid" id="wineryStats"></div>
+        
         <div class="panel-actions">
-          <button class="btn-primary">Ver tienda online</button>
-          <button class="btn-secondary">Contactar con la bodega</button>
-          <button class="btn-secondary" onclick="showComparator()">Añadir al comparador</button>
+          <button class="btn-primary" id="compareActionBtn" onclick="handleCompareClick()">Añadir al comparador</button>
+          <button class="btn-secondary" onclick="closePanel()">Seguir explorando el mapa</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- FEATURES / FULL PAGE SECTIONS -->
-<div id="features-section">
-  <div class="features-content">
-    <div class="section-header padded-section" style="padding-bottom:0">
-      <div class="section-eyebrow">Directorio</div>
-      <h2 class="section-title">Bodegas de <em>España</em></h2>
-    </div>
-
-    <!-- Feature cards -->
-    <div class="padded-section" id="features-grid-section">
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🗺</div>
-          <div class="feature-name">Mapa interactivo</div>
-          <div class="feature-desc">Explora más de 3.200 bodegas geolocalizadas en España. Filtra por región, D.O., tipo de vino o certificación.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <div class="feature-name">Índice de descubrimiento</div>
-          <div class="feature-desc">Algoritmo propio que destaca bodegas poco conocidas, con crecimiento reciente y regiones emergentes.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚖️</div>
-          <div class="feature-name">Comparador</div>
-          <div class="feature-desc">Compara dos bodegas en producción, certificaciones, exportación y disponibilidad de visitas.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🚗</div>
-          <div class="feature-name">Rutas automáticas</div>
-          <div class="feature-desc">Genera un fin de semana enológico personalizado con bodegas boutique según tu punto de partida.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🌡</div>
-          <div class="feature-name">Mapa de calor</div>
-          <div class="feature-desc">Visualiza zonas con alta concentración de bodegas, regiones emergentes y nuevos productores.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🤝</div>
-          <div class="feature-name">Para profesionales</div>
-          <div class="feature-desc">Importadores, distribuidores y restaurantes: busca bodegas por producción, exportación y variedad.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Routes -->
-    <div class="padded-section" id="routes-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Rutas automáticas</div>
-        <h2 class="section-title">Planifica tu <em>escapada</em></h2>
-      </div>
-      <div class="routes-grid">
-        <div class="route-card">
-          <div class="route-card-top">
-            <div class="route-name">Rioja Alta & Alavesa</div>
-          </div>
-          <div class="route-body">
-            <div class="route-meta">2 días · 5 bodegas boutique</div>
-            <div class="route-desc">Desde Logroño hacia el oeste, viñedos centenarios y bodegas familiares con experiencias exclusivas.</div>
-            <div class="route-stops">
-              <span class="route-stop">Eguren</span>
-              <span class="route-stop">Contino</span>
-              <span class="route-stop">Allende</span>
-              <span class="route-stop">Remírez</span>
-              <span class="route-stop">+1 más</span>
-            </div>
-          </div>
-        </div>
-        <div class="route-card">
-          <div class="route-card-top golden">
-            <div class="route-name">Ribera del Duero Desconocida</div>
-          </div>
-          <div class="route-body">
-            <div class="route-meta">3 días · 7 bodegas</div>
-            <div class="route-desc">Más allá de los grandes nombres: pequeños productores entre Peñafiel y Aranda con historia propia.</div>
-            <div class="route-stops">
-              <span class="route-stop">Pesquera</span>
-              <span class="route-stop">Pago La Jara</span>
-              <span class="route-stop">Vizcarra</span>
-              <span class="route-stop">+4 más</span>
-            </div>
-          </div>
-        </div>
-        <div class="route-card">
-          <div class="route-card-top green">
-            <div class="route-name">Rías Baixas Atlántico</div>
-          </div>
-          <div class="route-body">
-            <div class="route-meta">2 días · 4 bodegas</div>
-            <div class="route-desc">Albariño y mar. Bodegas con viñedo en espaldera junto a la ría, algunas con restaurante propio.</div>
-            <div class="route-stops">
-              <span class="route-stop">Señoráns</span>
-              <span class="route-stop">Forjas del Salnés</span>
-              <span class="route-stop">+2 más</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Blog -->
-    <div class="padded-section" id="blog-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Revista Divino</div>
-        <h2 class="section-title">Historias del <em>viñedo</em></h2>
-      </div>
-      <div class="blog-grid">
-        <div class="blog-card">
-          <div class="blog-card-img"><div class="icon">🍇</div></div>
-          <div class="blog-card-body">
-            <div class="blog-tag">Regiones emergentes</div>
-            <div class="blog-headline">Sierra de Gredos: el nuevo horizonte del Garnacha en España</div>
-            <div class="blog-date">8 junio 2026</div>
-          </div>
-        </div>
-        <div class="blog-card">
-          <div class="blog-card-img" style="background:linear-gradient(135deg,#5a4a30,#8a6a40)"><div class="icon">🏔</div></div>
-          <div class="blog-card-body">
-            <div class="blog-tag">Viticultores</div>
-            <div class="blog-headline">Pedro Balda y sus cepas viejas de Rioja: producir menos para expresar más</div>
-            <div class="blog-date">2 junio 2026</div>
-          </div>
-        </div>
-        <div class="blog-card">
-          <div class="blog-card-img" style="background:linear-gradient(135deg,#3a4a5a,#6a8a9a)"><div class="icon">🌿</div></div>
-          <div class="blog-card-body">
-            <div class="blog-tag">Enoturismo</div>
-            <div class="blog-headline">Cinco bodegas desconocidas que ofrecen la mejor experiencia de visita en 2026</div>
-            <div class="blog-date">28 mayo 2026</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Professionals -->
-    <div class="padded-section" id="professionals-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Acceso profesional</div>
-        <h2 class="section-title">Para <em>importadores</em> y distribuidores</h2>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card" style="border-left:3px solid var(--wine)">
-          <div class="feature-icon">🌍</div>
-          <div class="feature-name">Buscar por exportación</div>
-          <div class="feature-desc">Filtra bodegas con disponibilidad de exportación, mercados actuales y cuotas de producción disponibles.</div>
-        </div>
-        <div class="feature-card" style="border-left:3px solid var(--gold)">
-          <div class="feature-icon">📦</div>
-          <div class="feature-name">Contacto directo</div>
-          <div class="feature-desc">Conecta directamente con el responsable comercial de cada bodega. Sin intermediarios.</div>
-        </div>
-        <div class="feature-card" style="border-left:3px solid #4a7c59">
-          <div class="feature-icon">📈</div>
-          <div class="feature-name">Estadísticas de mercado</div>
-          <div class="feature-desc">Tendencias de producción, regiones en crecimiento y análisis de oferta por variedad y D.O.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Pricing -->
-    <div class="padded-section" id="pricing-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Para bodegas</div>
-        <h2 class="section-title">Visibilidad que <em>importa</em></h2>
-      </div>
-      <div class="pricing-grid">
-        <div class="pricing-card">
-          <div class="pricing-header">
-            <div class="pricing-name">Gratuito</div>
-            <div class="pricing-price"><sup>€</sup>0<span class="period"> / mes</span></div>
-          </div>
-          <div class="pricing-body">
-            <div class="pricing-feature"><span class="chk">✓</span> Presencia en el mapa</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Datos básicos y ubicación</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Hasta 3 fotos</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Ficha de vinos</div>
-            <div class="pricing-feature" style="color:var(--slate-light)"><span>—</span> &nbsp;Vídeo presentación</div>
-            <div class="pricing-feature" style="color:var(--slate-light)"><span>—</span> &nbsp;Estadísticas de visitas</div>
-            <div class="pricing-feature" style="color:var(--slate-light)"><span>—</span> &nbsp;Contacto con importadores</div>
-            <button class="btn-secondary" style="width:100%;margin-top:16px">Registrar mi bodega</button>
-          </div>
-        </div>
-        <div class="pricing-card featured">
-          <div class="pricing-header">
-            <div class="pricing-name">Premium</div>
-            <div class="pricing-price"><sup>€</sup>49<span class="period"> / mes</span></div>
-          </div>
-          <div class="pricing-body">
-            <div class="pricing-feature"><span class="chk">✓</span> Todo lo del plan gratuito</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Fotos ilimitadas</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Vídeo de presentación</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Posición destacada en el mapa</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Estadísticas de visitas</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Generación de leads</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Contacto directo con importadores</div>
-            <button class="btn-primary" style="margin-top:16px">Activar Premium</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- COMPARATOR -->
 <div id="comparator-section">
-  <div class="section-header" style="margin-bottom:32px">
-    <div class="section-eyebrow">Herramienta</div>
-    <h2 class="section-title">Comparar <em>bodegas</em></h2>
+  <div class="section-header">
+    <h2 class="section-title">Comparador de <em>Bodegas Independientes</em></h2>
   </div>
-  <table class="compare-table">
-    <thead>
-      <tr>
-        <th></th>
-        <th class="winery-col">Bodegas Eguren</th>
-        <th class="winery-col">Pazo Señoráns</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Denominación de origen</td>
-        <td>D.O.Ca. Rioja</td>
-        <td>D.O. Rías Baixas</td>
-      </tr>
-      <tr>
-        <td>Producción anual</td>
-        <td>180.000 botellas</td>
-        <td>120.000 botellas</td>
-      </tr>
-      <tr>
-        <td>Tipo de vino principal</td>
-        <td>Tinto</td>
-        <td>Blanco (Albariño)</td>
-      </tr>
-      <tr>
-        <td>Agricultura ecológica</td>
-        <td><span class="check">✓</span></td>
-        <td><span class="check">✓</span></td>
-      </tr>
-      <tr>
-        <td>Biodinámica</td>
-        <td><span class="cross">—</span></td>
-        <td><span class="check">✓</span></td>
-      </tr>
-      <tr>
-        <td>Exportación internacional</td>
-        <td><span class="check">✓</span> 12 países</td>
-        <td><span class="check">✓</span> 8 países</td>
-      </tr>
-      <tr>
-        <td>Enoturismo</td>
-        <td><span class="check">✓</span></td>
-        <td><span class="check">✓</span></td>
-      </tr>
-      <tr>
-        <td>Tienda online</td>
-        <td><span class="check">✓</span></td>
-        <td><span class="cross">—</span></td>
-      </tr>
-      <tr>
-        <td>Precio medio botella</td>
-        <td>€18</td>
-        <td>€22</td>
-      </tr>
-      <tr>
-        <td>Índice de descubrimiento</td>
-        <td style="color:var(--gold)">★★★★☆</td>
-        <td style="color:var(--gold)">★★★★★</td>
-      </tr>
-    </tbody>
-  </table>
+  
+  <div id="compare-table-container" class="compare-table-wrap">
+    </div>
+
   <div style="text-align:center;margin-top:32px">
-    <button class="btn-secondary" style="display:inline-block;padding:12px 28px" onclick="openMap()">← Ver en el mapa</button>
+    <button class="btn-secondary" style="display:inline-block;padding:12px 28px" onclick="goBack()">← Volver al mapa interactivo</button>
   </div>
 </div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 
 <script>
+  // Base de datos de Bodegas con coordenadas reales en España para el mapa dinámico
   const wineries = [
-    { name:"Bodegas Eguren", badge:"D.O.Ca. Rioja", desc:"Bodega familiar de quinta generación en el corazón de La Rioja Alta. Viñedos de más de 80 años.", meta:["Premium","Fundada 1870","Familiar"], certs:["eco","tur"], color:"linear-gradient(135deg,#9a7a50,#5a3a20)" },
-    { name:"Viñedos del Contino", badge:"D.O.Ca. Rioja", desc:"Finca de viñedo único en la margen derecha del Ebro. Pioneros en el concepto de 'château' en España.", meta:["Viñedo único","1969"], certs:["eco"], color:"linear-gradient(135deg,#7a5a40,#3a2010)" },
-    { name:"Finca Allende", badge:"D.O.Ca. Rioja", desc:"Nuevo productor de referencia. Vinificaciones de parcela única en Briones con cepas viejas de Tempranillo.", meta:["Nuevo productor","Parcela única"], certs:["bio","eco"], color:"linear-gradient(135deg,#4a7c59,#2a4a39)" },
-    { name:"Bodegas Pesquera", badge:"D.O. Ribera del Duero", desc:"Alejandro Fernández revolucionó Ribera del Duero en los años 80. Hoy sigue siendo referencia absoluta.", meta:["Premium","Fundada 1972"], certs:["tur"], color:"linear-gradient(135deg,#8a4a40,#4a1a10)" },
-    { name:"Pazo Señoráns", badge:"D.O. Rías Baixas", desc:"Palacio del siglo XVI rodeado de viñedos de Albariño junto a la ría. Colección de añadas antiguas única en España.", meta:["Premium","S. XVI","Biodinámica"], certs:["eco","bio","tur"], color:"linear-gradient(135deg,#5a7a6a,#2a4a3a)" },
-    { name:"Bodegas Mustiguillo", badge:"D.O. Utiel-Requena", desc:"Rescate de la uva Bobal en viñedos centenarios en la meseta valenciana. Producción limitada y artesanal.", meta:["Producción limitada","Bobal"], certs:["eco"], color:"linear-gradient(135deg,#7a6a4a,#4a4a2a)" },
-    { name:"Bodegas Toro Albalá", badge:"D.O. Montilla-Moriles", desc:"Enclavada en una antigua planta eléctrica del siglo XX. Sus Pedro Ximénez de añadas históricas son únicos.", meta:["Edificio histórico","Pedro Ximénez"], certs:["tur"], color:"linear-gradient(135deg,#8a7a3a,#5a4a1a)" },
-    { name:"Casa Castillo", badge:"D.O. Jumilla", desc:"Referencia de Jumilla con la variedad Monastrell. Viñedos de más de 50 años en suelo arenoso.", meta:["Monastrell","50+ años cepa"], certs:["eco","tur"], color:"linear-gradient(135deg,#6a4a5a,#3a1a2a)" },
-    { name:"Celler Can Ràfols dels Caus", badge:"D.O. Penedès", desc:"Bodega pionera en viticultura ecológica en Cataluña. Variedades autóctonas y experimentos únicos desde 1979.", meta:["Premium","Ecológica pionera"], certs:["eco","bio","tur"], color:"linear-gradient(135deg,#5a6a4a,#2a3a1a)" },
-    { name:"Viñas Altas", badge:"D.O. Ribera del Guadiana", desc:"Pequeño productor de Extremadura apostando por variedades locales en suelos de granito. Producción artesanal.", meta:["Nuevo productor","Artesanal"], certs:["eco"], color:"linear-gradient(135deg,#7a5a4a,#4a3a2a)" },
-    { name:"Costers del Segre", badge:"D.O. Costers del Segre", desc:"Bodegas de altura en el Pirineo leridano. Viñedo de montaña con gran amplitud térmica.", meta:["Viñedo montaña","Altura"], certs:["eco","tur"], color:"linear-gradient(135deg,#4a5a6a,#1a2a3a)" },
+    { id: 0, name:"Bodegas Eguren", lat: 42.5631, lng: -2.6184, badge:"D.O.Ca. Rioja", type: "Tinto", desc:"Bodega familiar de quinta generación en el corazón de La Rioja Alta. Viñedos de más de 80 años.", meta:["Premium","Fundada 1870"], botellas: "180.000", vinedo: "95 ha", precio: "18€", descIndex: "★★★★☆", estilo: "premium" },
+    { id: 1, name:"Viñedos del Contino", lat: 42.5489, lng: -2.5441, badge:"D.O.Ca. Rioja", type: "Tinto", desc:"Finca de viñedo único en la margen derecha del Ebro. Pioneros en el concepto de 'château' en España.", meta:["Viñedo único","Fundada 1969"], botellas: "150.000", vinedo: "62 ha", precio: "25€", descIndex: "★★★☆☆", estilo: "standard" },
+    { id: 2, name:"Finca Allende", lat: 42.5234, lng: -2.7121, badge:"D.O.Ca. Rioja", type: "Tinto", desc:"Nuevo productor de referencia. Vinificaciones de parcela única en Briones con cepas viejas de Tempranillo.", meta:["Nuevo productor","Ecológica"], botellas: "90.000", vinedo: "40 ha", precio: "32€", descIndex: "★★★★★", estilo: "new-producer" },
+    { id: 3, name:"Bodegas Pesquera", lat: 41.6162, lng: -4.1232, badge:"D.O. Ribera del Duero", type: "Tinto", desc:"Alejandro Fernández revolucionó Ribera del Duero en los años 80. Hoy sigue siendo referencia absoluta.", meta:["Premium","Tradicional"], botellas: "220.000", vinedo: "110 ha", precio: "21€", descIndex: "★★★☆☆", estilo: "standard" },
+    { id: 4, name:"Pazo Señoráns", lat: 42.5281, lng: -8.7212, badge:"D.O. Rías Baixas", type: "Blanco", desc:"Palacio del siglo XVI rodeado de viñedos de Albariño junto a la ría. Colección de añadas antiguas única.", meta:["Premium","Biodinámica"], botellas: "120.000", vinedo: "28 ha", precio: "22€", descIndex: "★★★★★", estilo: "premium" },
+    { id: 5, name:"Bodegas Mustiguillo", lat: 39.4851, lng: -1.1021, badge:"D.O. El Terrerazo", type: "Tinto", desc:"Rescate de la uva autóctona Bobal en viñedos centenarios en la meseta valenciana. Producción limitada.", meta:["Artesanal","Sostenible"], botellas: "60.000", vinedo: "88 ha", precio: "19€", descIndex: "★★★★☆", estilo: "standard" },
+    { id: 6, name:"Bodegas Toro Albalá", lat: 37.5872, lng: -4.6284, badge:"D.O. Montilla-Moriles", type: "Blanco", desc:"Enclavada en una antigua planta eléctrica del siglo XX. Sus Pedro Ximénez de añadas históricas son joyas únicas.", meta:["Histórica","Dulces y Finos"], botellas: "45.000", vinedo: "50 ha", precio: "45€", descIndex: "★★★★★", estilo: "new-producer" },
+    { id: 7, name:"Casa Castillo", lat: 38.4764, lng: -1.4512, badge:"D.O. Jumilla", type: "Tinto", desc:"Referencia indiscutible de Jumilla trabajando con la variedad Monastrell en secano riguroso.", meta:["Culto","Cepas Viejas"], botellas: "110.000", vinedo: "70 ha", precio: "28€", descIndex: "★★★★☆", estilo: "standard" },
+    { id: 8, name:"Celler Can Ràfols dels Caus", lat: 41.3214, lng: 1.8142, badge:"D.O. Penedès", type: "Blanco", desc:"Bodega pionera en viticultura ecológica en Cataluña. Variedades autóctonas dispuestas en el macizo del Garraf.", meta:["Premium","Ecológica"], botellas: "130.000", vinedo: "90 ha", precio: "24€", descIndex: "★★★★☆", estilo: "premium" },
+    { id: 9, name:"Viñas Altas", lat: 38.6812, lng: -6.4021, badge:"D.O. Ribera del Guadiana", type: "Tinto", desc:"Pequeño productor de Extremadura apostando por microparcelas locales en suelos graníticos.", meta:["Artesanal","Producción Baja"], botellas: "25.000", vinedo: "12 ha", precio: "15€", descIndex: "★★★★☆", estilo: "standard" },
+    { id: 10, name:"Castell del Remei", lat: 41.6421, lng: 0.9812, badge:"D.O. Costers del Segre", type: "Blanco", desc:"Bodegas de altura en el entorno leridano. Clima continental extremo que aporta una acidez y frescura singular.", meta:["Viñedo de Montaña"], botellas: "80.000", vinedo: "35 ha", precio: "17€", descIndex: "★★★☆☆", estilo: "new-producer" }
   ];
 
+  let map;
+  let markersLayer;
+  let currentWineryId = null;
+  let comparedWineries = []; // Array que almacena las bodegas seleccionadas para comparar
+  let currentFilterType = "Todos";
+  let currentSearchQuery = "";
+
+  // Inicializar la aplicación y renderizar el mapa interactivo de Leaflet
   function openMap() {
     document.getElementById('hero-section').classList.add('hidden');
     document.getElementById('app').style.display = 'flex';
-    document.getElementById('features-section').style.display = 'none';
-    document.getElementById('comparator-section').style.display = 'none';
-    document.getElementById('backBtn').classList.remove('visible');
+    
+    if (!map) {
+      // Centrar el mapa en la Península Ibérica con un zoom idóneo
+      map = L.map('map-canvas', {
+        zoomControl: false
+      }).setView([40.4167, -3.7037], 6);
+
+      // Usar un set de azulejos (tiles) claro y elegante que encaja con el diseño de divino.wine
+      L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', {
+        attribution: '&copy; CartoDB'
+      }).addTo(map);
+
+      // Añadir los controles de zoom abajo a la derecha
+      L.control.zoom({ position: 'bottomright' }).addTo(map);
+
+      markersLayer = L.layerGroup().addTo(map);
+      renderMarkers();
+    }
+    
     closePanel();
   }
 
-  function openWinery(idx) {
-    const w = wineries[idx];
-    document.getElementById('wineryName').textContent = w.name;
-    document.getElementById('wineryBadge').textContent = w.badge;
-    document.getElementById('wineryDesc').textContent = w.desc;
-    document.getElementById('wineryHeroImg').style.background = w.color;
-
-    const metaEl = document.getElementById('wineryMeta');
-    metaEl.innerHTML = w.meta.map((m, i) => `<span class="meta-tag${i===0?' highlight':''}">${m}</span>`).join('');
-
-    const certsEl = document.getElementById('wineryCerts');
-    const certMap = {eco:'🌿 Ecológica', bio:'🌀 Biodinámica', tur:'🏛 Enoturismo'};
-    const certClass = {eco:'eco', bio:'bio', tur:'tur'};
-    certsEl.innerHTML = w.certs.map(c=>`<span class="cert-badge ${certClass[c]}">${certMap[c]}</span>`).join('');
-
-    document.getElementById('winery-panel').classList.add('open');
-    document.querySelectorAll('.pin').forEach(p=>p.classList.remove('active'));
-  }
-
-  function closePanel() {
-    document.getElementById('winery-panel').classList.remove('open');
-  }
-
-  function toggleChip(el) {
-    el.classList.toggle('active');
-  }
-
-  function filterPins(val) {
-    // visual filter simulation
-    const count = val ? Math.max(1, Math.floor(3247 * (1 - val.length * 0.05))) : 3247;
-    document.getElementById('visibleCount').textContent = count.toLocaleString('es');
-  }
-
-  function filterByDisc(type) {
-    const map = {new:47, growing:132, hidden:380};
-    document.getElementById('visibleCount').textContent = map[type].toLocaleString('es');
-  }
-
-  function showFeatures(section) {
-    document.getElementById('hero-section').classList.add('hidden');
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('comparator-section').style.display = 'none';
-
-    const fs = document.getElementById('features-section');
-    fs.style.display = 'block';
-    setTimeout(()=>fs.classList.add('visible'), 10);
-
-    // Show/hide subsections
-    const sections = ['features-grid-section','routes-section','blog-section','professionals-section','pricing-section'];
-    sections.forEach(s => {
-      const el = document.getElementById(s);
-      if(el) el.style.display = 'none';
-    });
-    const target = section ? section+'-section' : 'features-grid-section';
-    const t = document.getElementById(target);
-    if(t) t.style.display = 'block';
-
-    document.getElementById('backBtn').classList.add('visible');
-  }
-
-  function showComparator() {
-    document.getElementById('hero-section').classList.add('hidden');
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('features-section').classList.remove('visible');
-    document.getElementById('features-section').style.display = 'none';
-
-    const cs = document.getElementById('comparator-section');
-    cs.style.display = 'block';
-    setTimeout(()=>cs.classList.add('visible'), 10);
-    document.getElementById('backBtn').classList.add('visible');
-  }
-
-  function goBack() {
-    document.getElementById('features-section').classList.remove('visible');
-    document.getElementById('features-section').style.display = 'none';
-    document.getElementById('comparator-section').classList.remove('visible');
-    document.getElementById('comparator-section').style.display = 'none';
-    openMap();
-  }
-
-  // Nav links rewrite
-  document.querySelectorAll('.nav-links a').forEach(a => {
-    a.addEventListener('click', e => e.preventDefault());
-  });
-</script>
-</body>
-</html>
+  // Dibujar los marcadores interactivos en base a los filtros
+  function renderMarkers() {
+    markers
