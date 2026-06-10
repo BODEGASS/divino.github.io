@@ -47,15 +47,15 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
   position: fixed;
   bottom: 32px;
   right: 32px;
-  width: 56px;
-  height: 56px;
+  width: 72px;
+  height: 72px;
   border-radius: 50%;
   background: var(--wine);
   color: var(--parchment);
   border: none;
   cursor: pointer;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 26px;
+  font-size: 34px;
   font-weight: 400;
   box-shadow: 0 4px 20px rgba(0,0,0,0.28);
   z-index: 150;
