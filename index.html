@@ -494,10 +494,6 @@
   <div class="logo">D<span>IVINO</span></div>
   <nav class="nav-links">
     <a href="#" onclick="showFeatures()">Bodegas</a>
-    <a href="#" onclick="showComparator()">Comparar</a>
-    <a href="#" onclick="showFeatures('routes')">Rutas</a>
-    <a href="#" onclick="showFeatures('blog')">Revista</a>
-    <a href="#" onclick="showFeatures('professionals')">Profesionales</a>
     <a href="#" class="nav-cta" onclick="showFeatures('pricing')">Para bodegas</a>
   </nav>
 </div>
@@ -811,164 +807,7 @@
   </div>
 </div>
 
-<!-- FEATURES / FULL PAGE SECTIONS -->
-<div id="features-section">
-  <div class="features-content">
-    <div class="section-header padded-section" style="padding-bottom:0">
-      <div class="section-eyebrow">Directorio</div>
-      <h2 class="section-title">Bodegas de <em>España</em></h2>
-    </div>
-
-    <!-- Feature cards -->
-    <div class="padded-section" id="features-grid-section">
-      <div class="features-grid">
-        <div class="feature-card">
-          <div class="feature-icon">🗺</div>
-          <div class="feature-name">Mapa interactivo</div>
-          <div class="feature-desc">Explora más de 3.200 bodegas geolocalizadas en España. Filtra por región, D.O., tipo de vino o certificación.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">📊</div>
-          <div class="feature-name">Índice de descubrimiento</div>
-          <div class="feature-desc">Algoritmo propio que destaca bodegas poco conocidas, con crecimiento reciente y regiones emergentes.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">⚖️</div>
-          <div class="feature-name">Comparador</div>
-          <div class="feature-desc">Compara dos bodegas en producción, certificaciones, exportación y disponibilidad de visitas.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🚗</div>
-          <div class="feature-name">Rutas automáticas</div>
-          <div class="feature-desc">Genera un fin de semana enológico personalizado con bodegas boutique según tu punto de partida.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🌡</div>
-          <div class="feature-name">Mapa de calor</div>
-          <div class="feature-desc">Visualiza zonas con alta concentración de bodegas, regiones emergentes y nuevos productores.</div>
-        </div>
-        <div class="feature-card">
-          <div class="feature-icon">🤝</div>
-          <div class="feature-name">Para profesionales</div>
-          <div class="feature-desc">Importadores, distribuidores y restaurantes: busca bodegas por producción, exportación y variedad.</div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Routes -->
-    <div class="padded-section" id="routes-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Rutas automáticas</div>
-        <h2 class="section-title">Planifica tu <em>escapada</em></h2>
-      </div>
-      <div class="routes-grid">
-        <div class="route-card">
-          <div class="route-card-top">
-            <div class="route-name">Rioja Alta & Alavesa</div>
-          </div>
-          <div class="route-body">
-            <div class="route-meta">2 días · 5 bodegas boutique</div>
-            <div class="route-desc">Desde Logroño hacia el oeste, viñedos centenarios y bodegas familiares con experiencias exclusivas.</div>
-            <div class="route-stops">
-              <span class="route-stop">Eguren</span>
-              <span class="route-stop">Contino</span>
-              <span class="route-stop">Allende</span>
-              <span class="route-stop">Remírez</span>
-              <span class="route-stop">+1 más</span>
-            </div>
-          </div>
-        </div>
-        <div class="route-card">
-          <div class="route-card-top golden">
-            <div class="route-name">Ribera del Duero Desconocida</div>
-          </div>
-          <div class="route-body">
-            <div class="route-meta">3 días · 7 bodegas</div>
-            <div class="route-desc">Más allá de los grandes nombres: pequeños productores entre Peñafiel y Aranda con historia propia.</div>
-            <div class="route-stops">
-              <span class="route-stop">Pesquera</span>
-              <span class="route-stop">Pago La Jara</span>
-              <span class="route-stop">Vizcarra</span>
-              <span class="route-stop">+4 más</span>
-            </div>
-          </div>
-        </div>
-        <div class="route-card">
-          <div class="route-card-top green">
-            <div class="route-name">Rías Baixas Atlántico</div>
-          </div>
-          <div class="route-body">
-            <div class="route-meta">2 días · 4 bodegas</div>
-            <div class="route-desc">Albariño y mar. Bodegas con viñedo en espaldera junto a la ría, algunas con restaurante propio.</div>
-            <div class="route-stops">
-              <span class="route-stop">Señoráns</span>
-              <span class="route-stop">Forjas del Salnés</span>
-              <span class="route-stop">+2 más</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Blog -->
-    <div class="padded-section" id="blog-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Revista Divino</div>
-        <h2 class="section-title">Historias del <em>viñedo</em></h2>
-      </div>
-      <div class="blog-grid">
-        <div class="blog-card">
-          <div class="blog-card-img"><div class="icon">🍇</div></div>
-          <div class="blog-card-body">
-            <div class="blog-tag">Regiones emergentes</div>
-            <div class="blog-headline">Sierra de Gredos: el nuevo horizonte del Garnacha en España</div>
-            <div class="blog-date">8 junio 2026</div>
-          </div>
-        </div>
-        <div class="blog-card">
-          <div class="blog-card-img" style="background:linear-gradient(135deg,#5a4a30,#8a6a40)"><div class="icon">🏔</div></div>
-          <div class="blog-card-body">
-            <div class="blog-tag">Viticultores</div>
-            <div class="blog-headline">Pedro Balda y sus cepas viejas de Rioja: producir menos para expresar más</div>
-            <div class="blog-date">2 junio 2026</div>
-          </div>
-        </div>
-        <div class="blog-card">
-          <div class="blog-card-img" style="background:linear-gradient(135deg,#3a4a5a,#6a8a9a)"><div class="icon">🌿</div></div>
-          <div class="blog-card-body">
-            <div class="blog-tag">Enoturismo</div>
-            <div class="blog-headline">Cinco bodegas desconocidas que ofrecen la mejor experiencia de visita en 2026</div>
-            <div class="blog-date">28 mayo 2026</div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Professionals -->
-    <div class="padded-section" id="professionals-section" style="display:none">
-      <div class="section-header">
-        <div class="section-eyebrow">Acceso profesional</div>
-        <h2 class="section-title">Para <em>importadores</em> y distribuidores</h2>
-      </div>
-      <div class="features-grid">
-        <div class="feature-card" style="border-left:3px solid var(--wine)">
-          <div class="feature-icon">🌍</div>
-          <div class="feature-name">Buscar por exportación</div>
-          <div class="feature-desc">Filtra bodegas con disponibilidad de exportación, mercados actuales y cuotas de producción disponibles.</div>
-        </div>
-        <div class="feature-card" style="border-left:3px solid var(--gold)">
-          <div class="feature-icon">📦</div>
-          <div class="feature-name">Contacto directo</div>
-          <div class="feature-desc">Conecta directamente con el responsable comercial de cada bodega. Sin intermediarios.</div>
-        </div>
-        <div class="feature-card" style="border-left:3px solid #4a7c59">
-          <div class="feature-icon">📈</div>
-          <div class="feature-name">Estadísticas de mercado</div>
-          <div class="feature-desc">Tendencias de producción, regiones en crecimiento y análisis de oferta por variedad y D.O.</div>
-        </div>
-      </div>
-    </div>
-
+   
     <!-- Pricing -->
     <div class="padded-section" id="pricing-section" style="display:none">
       <div class="section-header">
@@ -978,8 +817,8 @@
       <div class="pricing-grid">
         <div class="pricing-card">
           <div class="pricing-header">
-            <div class="pricing-name">Gratuito</div>
-            <div class="pricing-price"><sup>€</sup>0<span class="period"> / mes</span></div>
+            <div class="pricing-name">Partner/div>
+            <div class="pricing-price"><sup>€</sup>10<span class="period"> / mes</span></div>
           </div>
           <div class="pricing-body">
             <div class="pricing-feature"><span class="chk">✓</span> Presencia en el mapa</div>
@@ -995,93 +834,18 @@
         <div class="pricing-card featured">
           <div class="pricing-header">
             <div class="pricing-name">Premium</div>
-            <div class="pricing-price"><sup>€</sup>49<span class="period"> / mes</span></div>
+            <div class="pricing-price"><sup>€</sup>10<span class="period"> / mes</span></div>
           </div>
           <div class="pricing-body">
             <div class="pricing-feature"><span class="chk">✓</span> Todo lo del plan gratuito</div>
             <div class="pricing-feature"><span class="chk">✓</span> Fotos ilimitadas</div>
             <div class="pricing-feature"><span class="chk">✓</span> Vídeo de presentación</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Posición destacada en el mapa</div>
             <div class="pricing-feature"><span class="chk">✓</span> Estadísticas de visitas</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Generación de leads</div>
-            <div class="pricing-feature"><span class="chk">✓</span> Contacto directo con importadores</div>
             <button class="btn-primary" style="margin-top:16px">Activar Premium</button>
           </div>
         </div>
       </div>
     </div>
-  </div>
-</div>
-
-<!-- COMPARATOR -->
-<div id="comparator-section">
-  <div class="section-header" style="margin-bottom:32px">
-    <div class="section-eyebrow">Herramienta</div>
-    <h2 class="section-title">Comparar <em>bodegas</em></h2>
-  </div>
-  <table class="compare-table">
-    <thead>
-      <tr>
-        <th></th>
-        <th class="winery-col">Bodegas Eguren</th>
-        <th class="winery-col">Pazo Señoráns</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr>
-        <td>Denominación de origen</td>
-        <td>D.O.Ca. Rioja</td>
-        <td>D.O. Rías Baixas</td>
-      </tr>
-      <tr>
-        <td>Producción anual</td>
-        <td>180.000 botellas</td>
-        <td>120.000 botellas</td>
-      </tr>
-      <tr>
-        <td>Tipo de vino principal</td>
-        <td>Tinto</td>
-        <td>Blanco (Albariño)</td>
-      </tr>
-      <tr>
-        <td>Agricultura ecológica</td>
-        <td><span class="check">✓</span></td>
-        <td><span class="check">✓</span></td>
-      </tr>
-      <tr>
-        <td>Biodinámica</td>
-        <td><span class="cross">—</span></td>
-        <td><span class="check">✓</span></td>
-      </tr>
-      <tr>
-        <td>Exportación internacional</td>
-        <td><span class="check">✓</span> 12 países</td>
-        <td><span class="check">✓</span> 8 países</td>
-      </tr>
-      <tr>
-        <td>Enoturismo</td>
-        <td><span class="check">✓</span></td>
-        <td><span class="check">✓</span></td>
-      </tr>
-      <tr>
-        <td>Tienda online</td>
-        <td><span class="check">✓</span></td>
-        <td><span class="cross">—</span></td>
-      </tr>
-      <tr>
-        <td>Precio medio botella</td>
-        <td>€18</td>
-        <td>€22</td>
-      </tr>
-      <tr>
-        <td>Índice de descubrimiento</td>
-        <td style="color:var(--gold)">★★★★☆</td>
-        <td style="color:var(--gold)">★★★★★</td>
-      </tr>
-    </tbody>
-  </table>
-  <div style="text-align:center;margin-top:32px">
-    <button class="btn-secondary" style="display:inline-block;padding:12px 28px" onclick="openMap()">← Ver en el mapa</button>
   </div>
 </div>
 
