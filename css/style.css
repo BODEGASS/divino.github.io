@@ -45,33 +45,34 @@ html, body { height: 100%; overflow: hidden; font-family: 'Inter', sans-serif; b
 /* ─── FAB DIVINO ─── */
 .divino-fab {
   position: fixed;
-  bottom: 32px;
-  right: 32px;
-  width: 72px;
-  height: 72px;
+  bottom: 40px;
+  right: 40px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
   background: var(--wine);
   color: var(--parchment);
   border: none;
   cursor: pointer;
   font-family: 'Cormorant Garamond', serif;
-  font-size: 34px;
+  font-size: 40px;
   font-weight: 400;
   box-shadow: 0 4px 20px rgba(0,0,0,0.28);
   z-index: 150;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
+  opacity: 0.35;
+  transition: background 0.25s, transform 0.25s, box-shadow 0.25s, opacity 0.25s;
+  text-decoration: none;
 }
 .divino-fab:hover {
+  opacity: 1;
   background: var(--wine-light);
-  transform: scale(1.08);
-  box-shadow: 0 6px 28px rgba(0,0,0,0.35);
+  transform: scale(1.07);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.38);
 }
-
 .welcome-trigger { display: none; }
-
 /* ─── LAYOUT ─── */
 #app { display: flex; height: 100vh; padding-top: 52px; }
 
@@ -191,7 +192,7 @@ input[type=range] {
 
 /* ─── MAP CONTROLS ─── */
 .map-controls {
-  position: absolute; bottom: 28px; right: 24px;
+  position: absolute; bottom: 28px; right: 140px;
   display: flex; flex-direction: column; gap: 4px; z-index: 20;
 }
 .map-btn {

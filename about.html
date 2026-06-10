@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DIVINO — Descubre el mundo oculto del vino</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    html, body {
+      height: 100%; overflow: auto;
+      background: var(--parchment);
+    }
+    .about-page {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 40px 60px;
+      text-align: center;
+      background: var(--parchment);
+    }
+    .about-back {
+      position: fixed; top: 20px; left: 28px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase;
+      color: var(--slate); text-decoration: none;
+      border: 1px solid var(--parchment-dark);
+      padding: 8px 16px;
+      background: var(--white);
+      transition: all 0.2s;
+    }
+    .about-back:hover { color: var(--ink); border-color: var(--ink); }
+    .about-logo {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: 16px; font-weight: 300; letter-spacing: 0.35em;
+      text-transform: uppercase; color: var(--slate);
+      margin-bottom: 48px;
+    }
+    .about-eyebrow {
+      font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+      color: var(--slate); margin-bottom: 20px;
+    }
+    .about-title {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(40px, 6vw, 72px);
+      font-weight: 300; line-height: 1.1;
+      color: var(--ink); margin-bottom: 20px;
+    }
+    .about-title em { font-style: italic; color: var(--wine); }
+    .about-sub {
+      font-size: 15px; color: var(--slate);
+      max-width: 500px; line-height: 1.7; margin-bottom: 52px;
+    }
+    .about-cta-group { display: flex; gap: 14px; margin-bottom: 80px; flex-wrap: wrap; justify-content: center; }
+    .about-btn-main {
+      background: var(--wine); color: var(--white); border: none;
+      padding: 16px 36px; font-family: 'Inter', sans-serif;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      cursor: pointer; transition: background 0.2s; text-decoration: none;
+      display: inline-block;
+    }
+    .about-btn-main:hover { background: var(--wine-light); }
+    .about-btn-sec {
+      background: transparent; color: var(--ink);
+      border: 1px solid var(--parchment-dark);
+      padding: 16px 36px; font-family: 'Inter', sans-serif;
+      font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase;
+      cursor: pointer; transition: all 0.2s; text-decoration: none;
+      display: inline-block;
+    }
+    .about-btn-sec:hover { border-color: var(--ink); }
+    .about-stats {
+      display: flex; gap: 60px; justify-content: center; flex-wrap: wrap;
+      border-top: 1px solid var(--parchment-dark);
+      padding-top: 40px; width: 100%; max-width: 700px;
+    }
+    .about-stat { text-align: center; }
+    .about-stat-n {
+      font-family: 'Cormorant Garamond', serif; font-size: 48px; font-weight: 300;
+      color: var(--ink); line-height: 1;
+    }
+    .about-stat-l {
+      font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--slate); margin-top: 6px;
+    }
+  </style>
+</head>
+<body>
+  <a class="about-back" href="index.html">← Volver al mapa</a>
+
+  <div class="about-page">
+    <div class="about-logo">Divino</div>
+    <div class="about-eyebrow">Descubre el mundo oculto del vino</div>
+    <h1 class="about-title">El mapa de las bodegas<br><em>que aún no conoces</em></h1>
+    <p class="about-sub">Miles de bodegas independientes, sus historias, sus vinos y cómo encontrarlas. Todo en un solo lugar.</p>
+    <div class="about-cta-group">
+      <a class="about-btn-main" href="index.html">Explorar el mapa</a>
+      <a class="about-btn-sec" href="index.html#pricing">¿Tienes una bodega?</a>
+    </div>
+    <div class="about-stats">
+      <div class="about-stat">
+        <div class="about-stat-n">3.200+</div>
+        <div class="about-stat-l">Bodegas</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-n">68</div>
+        <div class="about-stat-l">D.O. en España</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-n">420</div>
+        <div class="about-stat-l">Productores eco</div>
+      </div>
+      <div class="about-stat">
+        <div class="about-stat-n">190</div>
+        <div class="about-stat-l">Con enoturismo</div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
